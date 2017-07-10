@@ -20,39 +20,7 @@ import numpy as np
 #
 # possible actions: up (0), down (1), right (2), left (3)
 
-# given a state, returns a dict of successor states for each of the 4 actions
-def nextState(state):
-    if (state == 15 or state == 16):
-        return {"up":16, "down":16, "right":16, "left":16}
-    else:
-        if (0 <= state and state <= 3):
-            upState = state
-        else:
-            upState = state - 4
-
-        if (12 <= state and state <= 15):
-            downState = state
-        else:
-            downState = state + 4
-
-        if (state+1 % 4 == 0):
-            rightState = state
-        else:
-            rightState = state + 1
-
-        if (state % 4 == 0):
-            leftState = state
-        else:
-            leftState = state - 1
-
-        return {"up":upState, "down":downState, "right":rightState, "left":leftState}
-
-def valueIteration(discount, a, b):
-    # print(a + b + b)
-    if ( not isclose(a + b + b, 1.0) ): # fricken floats
-        print("Error: a + b + b must equal 1")
-        return 1
-
+def valueIteration(discount):
     T,R = gridWorld()
 
     # policy = U, newPolicy = U'
@@ -92,6 +60,3 @@ def valueIteration(discount, a, b):
 res = valueIteration(0.99, 0.9, 0.05)
 
 print(res)
-#
-# for i in range(17):
-#     print(nextState(i))
