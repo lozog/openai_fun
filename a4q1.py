@@ -20,33 +20,46 @@ import numpy as np
 #
 # possible actions: up (0), down (1), right (2), left (3)
 
-def valueIteration(discount):
+def valueIteration(discount, num_iterations):
     T,R = gridWorld()
 
     # policy = U, newPolicy = U'
     newPolicy = np.zeros(17) # policy will include an action for each state. starts empty, gets filled in
 
-    NUM_ITERATIONS = 1 # how many times to run the value iteration process
+    # NUM_ITERATIONS = 1 # how many times to run the value iteration process
     NUM_STATES = 17 # includes goal state
 
-    for iteration in range(NUM_ITERATIONS): # eventually replace with some test to see if we've reached optimal policy
+    for iteration in range(num_iterations): # eventually replace with some test to see if we've reached optimal policy
         policy = newPolicy
 
         for state in range(NUM_STATES):
 
             maxExpectedUtility = 0 # expected utility, assuming we choose optimal action
 
-            for nextState,transition in enumerate(T[state]):
+            for action in range(0,4):
+
                 expectedUtility = 0
 
-                for prob in transition:
-                    expectedUtility += prob * newPolicy[nextState]
+                for nextState in range(NUM_STATES):
+                    expectedUtility += T[state][nextState][action] * newPolicy[nextState]
                 # for
 
                 if (expectedUtility > maxExpectedUtility):
                     maxExpectedUtility = expectedUtility
 
             # for
+
+            # for nextState,transition in enumerate(T[state]):
+            #     expectedUtility = 0
+            #     # print("state: {}, nextState: {}, transition: {}".format(state, nextState, transition))
+            #     for prob in transition:
+            #         expectedUtility += prob * newPolicy[nextState]
+            #     # for
+            #
+            #     if (expectedUtility > maxExpectedUtility):
+            #         maxExpectedUtility = expectedUtility
+            #
+            # # for
 
             reward = R[state]
             newPolicy[state] = reward + (discount * maxExpectedUtility)
@@ -57,6 +70,17 @@ def valueIteration(discount):
 
     return policy
 
-res = valueIteration(0.99, 0.9, 0.05)
-
+res = valueIteration(0.99, 1)
+print(res)
+res = valueIteration(0.99, 2)
+print(res)
+res = valueIteration(0.99, 5)
+print(res)
+res = valueIteration(0.99, 10)
+print(res)
+res = valueIteration(0.99, 20)
+print(res)
+res = valueIteration(0.99, 30)
+print(res)
+res = valueIteration(0.99, 40)
 print(res)
