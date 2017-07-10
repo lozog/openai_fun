@@ -49,24 +49,12 @@ def valueIteration(discount, num_iterations):
 
             # for
 
-            # for nextState,transition in enumerate(T[state]):
-            #     expectedUtility = 0
-            #     # print("state: {}, nextState: {}, transition: {}".format(state, nextState, transition))
-            #     for prob in transition:
-            #         expectedUtility += prob * newPolicy[nextState]
-            #     # for
-            #
-            #     if (expectedUtility > maxExpectedUtility):
-            #         maxExpectedUtility = expectedUtility
-            #
-            # # for
-
             reward = R[state]
             newPolicy[state] = reward + (discount * maxExpectedUtility)
 
         # for
 
-    #for
+    # for
 
     return policy
 
