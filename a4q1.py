@@ -27,29 +27,31 @@ def valueIteration(discount, a = 0.8, b = 0.1):
 
     T,R = gridWorld(a, b)
 
-    # policy = U, nextPolicy = U'
-    nextPolicy = np.zeros(17) # policy will include an action for each state.
-                              # initial values won't affect final outcome because value iteration converges to optimal policy
-
-    nextV = np.zeros(17)
-
     # NUM_ITERATIONS = 1 # how many times to run the value iteration process
     NUM_STATES = 17 # includes goal state
     MAX_ERROR = 0.01 # defined by assignment
+    ACTIONS = ['up', 'down', 'left', 'right', 'none']
+
+    # VF = U, nextVF = U'
+    nextVF = np.zeros(NUM_STATES)
+
+    # policy will include an action for each state.
+    # initial values won't affect final outcome because value iteration converges to optimal policy
+    # policy = np.zeros(NUM_STATES, dtype=np.int)
+    policy = {key: '' for key in range(0, NUM_STATES)}
 
     delta = 0 # maximum change in the utility of any state in an iteration
     iter_count = 0
     while (True):
-        policy = np.copy(nextPolicy)
-        V = np.copy(nextV)
-        # print("policy: {}".format(policy))
+        VF = np.copy(nextVF)
+        # print("VF: {}".format(VF))
 
-        error = np.zeros(17)
+        error = np.zeros(NUM_STATES)
 
         for state in range(NUM_STATES):
 
             maxExpectedUtility = 0 # expected utility, assuming we choose optimal action
-            bestMove = -1          # -1 is a sentinel value
+            bestMove = 4           # action 4 is none, indicating the agent's action doesn't change the outcome
 
             for action in range(0,4):
 
@@ -57,24 +59,22 @@ def valueIteration(discount, a = 0.8, b = 0.1):
                 # print(action)
 
                 for nextState in range(NUM_STATES):
-                    expectedUtility += T[state][nextState][action] * nextPolicy[nextState]
+                    expectedUtility += T[state][nextState][action] * nextVF[nextState]
                 # for
 
                 if (expectedUtility > maxExpectedUtility):
                     maxExpectedUtility = expectedUtility
-                    bestMove = action
-
+                    bestMove = int(action)
             # for
 
             # calculate utility
             reward = R[state]
-            nextPolicy[state] = reward + (discount * maxExpectedUtility)
-            nextV[state] = bestMove
+            nextVF[state] = reward + (discount * maxExpectedUtility)
+            policy[state] = ACTIONS[bestMove]
 
             # calculate error
-            error[state] = abs(nextPolicy[state] - policy[state])
-            # print("abs({} - {} = {})".format(nextPolicy[state], policy[state], error[state]))
-
+            error[state] = abs(nextVF[state] - VF[state])
+            # print("abs({} - {} = {})".format(nextVF[state], VF[state], error[state]))
 
         # for
         iter_count += 1
@@ -93,9 +93,11 @@ def valueIteration(discount, a = 0.8, b = 0.1):
     # while
 
     print("{} iterations".format(iter_count))
-    return nextPolicy,nextV
+    return nextVF,policy
+
 
 pol1,v1 = valueIteration(0.99, 0.9, 0.05)
 pol2,v2 = valueIteration(0.99, 0.8, 0.1)
-print("0.9, 0.1: {}\n{}".format(pol1, v1))
-print("0.8, 0.05: {}\n{}".format(pol2, v2))
+
+print("0.9, 0.05: {}\n{}".format(pol1, v1))
+print("0.8, 0.1: {}\n{}".format(pol2, v2))
