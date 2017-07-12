@@ -1,5 +1,6 @@
 from math import isclose
 import numpy as np
+from random import random
 
 # Grid world layout:
 #
@@ -18,6 +19,18 @@ import numpy as np
 #  End state: 16
 #
 # possible actions: up (0), down (1), left (2), right (3)
+
+# a 3 sided die that lands on side 0 with probability a,
+# side 1 with probability b, and side 2 with probability b
+# taken from https://piazza.com/class/j25q3iuqs344qb?cid=379
+def chooseAction(a, b):
+    rand = random()
+    if rand <= a:
+        return 0
+    elif rand <= a + b:
+        return 1
+    else:
+        return 2
 
 # transition function
 # given a (state, action) pair, returns the nextState
