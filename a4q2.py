@@ -19,33 +19,35 @@ import numpy as np
 #
 # possible actions: up (0), down (1), left (2), right (3)
 
-# given a state, returns a dict of successor states for each of the 4 actions
-def nextState(state):
+# transition function
+# given a (state, action) pair, returns the nextState
+def T(state, action):
     if (state == 15 or state == 16):
-        return {"up":16, "down":16, "right":16, "left":16}
+        return state
     else:
-        if (0 <= state and state <= 3):
-            upState = state
-        else:
-            upState = state - 4
+        if (action == 0): # up
+            if (0 <= state and state <= 3): # if state in top row
+                return state
+            else:
+                return state - 4
 
-        if (12 <= state and state <= 15):
-            downState = state
-        else:
-            downState = state + 4
+        if (action == 1): # down
+            if (12 <= state and state <= 15): # if state in bottom row
+                return state
+            else:
+                return state + 4
 
-        if (state+1 % 4 == 0):
-            rightState = state
-        else:
-            rightState = state + 1
+        if (action == 2) # left
+            if (state % 4 == 0): # if state in left-most column
+                return state
+            else:
+                return state - 1
 
-        if (state % 4 == 0):
-            leftState = state
-        else:
-            leftState = state - 1
-
-        return {"up":upState, "down":downState, "right":rightState, "left":leftState}
-
+        if (action == 3): # right
+            if (state+1 % 4 == 0): # if state in right-most column
+                return state
+            else:
+                return state + 1
 
 def QLearning(discount, a = 0.8, b = 0.1):
     if ( not isclose(a + b + b, 1.0) ): # fricken floats
@@ -59,8 +61,6 @@ def QLearning(discount, a = 0.8, b = 0.1):
     BAD_STATE   = 9
     GOAL_STATE  = 15
     END_STATE   = 16
-
-
 
     # initialize rewards to -1
     R = -np.ones((17))
@@ -79,5 +79,5 @@ def QLearning(discount, a = 0.8, b = 0.1):
 
         # select action a and execute it
 
-
+        pass
     # while
