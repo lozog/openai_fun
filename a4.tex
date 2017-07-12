@@ -1,0 +1,107 @@
+\documentclass{article}
+
+\setlength{\parindent}{2em}
+
+\usepackage{fullpage}
+\usepackage{url}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\usepackage{gensymb}
+\usepackage{hyperref}
+
+% hyperlink setup for table of contents
+\hypersetup{
+    colorlinks=false, %set true if you want colored links
+    linktoc=all,     %set to all if you want both sections and subsections linked
+}
+
+% I'm actually not sure what these are for
+\def\Nat{{\rm I\kern-.17em N}}
+\def\SFF{\hbox{I\kern-.09em\hbox{I}}}
+
+% set margins for the nested lists
+\setdescription[2]{labelindent=0pt,itemindent=-0.75in}
+\setdescription[3]{labelindent=0pt,itemindent=-0.75in}
+\setdescription[4]{labelindent=0pt,itemindent=-0.75in}
+
+\newcommand\projecttitle{Assignment 4: Markov Decision Processes and Reinforcement
+Learning}
+\newcommand\myname{Liam Ozog (20515121)}
+\newcommand\myclass{CS486 Spring 2017}
+\newcommand\mydate{Due July 21, 2017}
+
+\begin{document}
+
+~\vfill
+\begin{center}
+\Large
+
+\projecttitle
+
+\myname
+
+\myclass
+
+\mydate
+
+\end{center}
+\vfill ~\vfill~
+
+\newpage
+
+\section*{Question 1: Value Iteration}
+\normalsize
+
+	\subsection*{Printout of code}
+
+	\textit{See a4q1.py}
+
+  \subsection*{Optimal Policies \& Value Functions}
+  \noindent
+  \textit{Note: States 15 and 16 have no action in the policy because agents in those states have no choice in their
+  movement, thus their actions do not matter.} \\
+
+  \noindent
+  Optimal Policy (a = 0.9, b = 0.05):
+  \begin{verbatim}
+     {0: 'right', 1:  'right', 2:  'right',  3: 'down',   4: 'right',  5: 'right',
+      6: 'right', 7:  'down',  8:  'down',   9: 'right', 10: 'right', 11: 'down',
+     12: 'right', 13: 'right', 14: 'right', 15: 'none',  16: 'none'}
+  \end{verbatim}
+
+  \noindent
+  Optimal Value Function (a = 0.9, b = 0.05):
+  \begin{verbatim}
+    [  86.68355476   88.85264322   91.04238159   93.06759719   85.50610338
+       87.61167191   93.1860991    95.34698972   83.91904241   23.93408526
+       95.46145877   97.65948678   89.31589593   91.74049353   97.65948678
+      100.            0.        ]
+  \end{verbatim}
+
+  \noindent
+  Optimal Policy (a = 0.8, b = 0.1):
+  \begin{verbatim}
+    {0: 'right', 1:  'right',  2: 'right',  3: 'down',   4: 'up',     5: 'up',
+     6: 'right', 7:  'down',   8: 'down',   9: 'right', 10: 'right', 11: 'down',
+    12: 'right', 13: 'right', 14: 'right', 15: 'none',  16: 'none'}
+  \end{verbatim}
+
+  \noindent
+  Optimal Value Function (a = 0.8, b = 0.1):
+  \begin{verbatim}
+    [  84.49883009   87.07568686   89.6664856    91.76269958   82.53291104
+       85.24817868   92.0553383    94.44598015   74.57203626   22.04530335
+       94.71862229   97.19993736   83.34219952   86.75342237   97.19993736
+      100.            0.        ]
+  \end{verbatim}
+
+  \subsection*{Discussion of Policies \& Value Functions}
+
+  When the values of \texttt{a} decreases and \texttt{b} increases, it means the chances that an action chosen by the
+  agent will be succesfully
+  carried out \textit{increase}. In other words, the risk of moving into a state that the agent didn't choose goes \textit{down}. In such
+  cases, the optimal policy guides the agent to being more cautious - in particular, in states \texttt{4} and \texttt{5},
+  the policy guides the agent away from the bad state - despite the fact that the rewards of each state are negative,
+  which would normally encourage the agent to get to the goal state as quickly as possible.
+
+\end{document}
