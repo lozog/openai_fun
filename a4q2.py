@@ -124,9 +124,6 @@ def QLearning(NUM_ITERATIONS = 1, epsilon = 0.05, discount = 0.99, a = 0.9, b = 
 
         while (True):
         # for x in range(0, 5):
-            if (DEBUG):
-                print(state)
-
             if (state == END_STATE):
                 break
 
@@ -134,42 +131,26 @@ def QLearning(NUM_ITERATIONS = 1, epsilon = 0.05, discount = 0.99, a = 0.9, b = 
             curMaxQ = None
             optimalAction = 0
             for a in range(0, 4):
-                if(DEBUG):
-                    print("state: {}, action: {}, T(s, a): {},".format(state, a, T(state, a)))
 
-                if (T(state, a) == state):
-                    continue
-                if (DEBUG):
-                    print("{} > {} ?".format(Q[state][a], curMaxQ))
-                if (DEBUG):
-                    print("state: {}, action: {}".format(state, a))
-                if (DEBUG and 0 ):
-                    print(Q[state])
+                # if (T(state, a) == state):
+                #     continue
 
                 if (curMaxQ is None or Q[state][a] > curMaxQ):
-                    if (DEBUG and 0):
-                        print("optimal found")
                     curMaxQ = Q[state][a]
                     optimalAction = a
             # for
             policy[state] = optimalAction
-            if (DEBUG and 0):
-                print("optimal action: {}".format(optimalAction))
+            # if (state == 4):
+                # print("{}, {}".format(state, optimalAction))
 
             # epsilon-greediness
             action = calcAction(epsilon, optimalAction)
 
-            action = possibleOutcomes(action)[0] #[[rollDie(a, b)]
+            action = possibleOutcomes(action)[rollDie(a, b)]
 
             N[state][action] += 1
             nextState = T(state, action)
-            if (DEBUG and 0 and (state == 5)):
-                print("state: {}, action: {}, nextState: {}, N(s, a): {}".format(state, action, nextState, N[state][action]))
 
-            if (action != optimalAction):
-                if (DEBUG and 0):
-                    print("state: {}, action: {}, nextState: {}, N(s, a): {}".format(state, action, nextState, N[state][action]))
-                    print("didn't take optimal path!")
             # receive immediate reward r
             reward = R[state]
 
@@ -183,27 +164,28 @@ def QLearning(NUM_ITERATIONS = 1, epsilon = 0.05, discount = 0.99, a = 0.9, b = 
             # for
 
             learnRate = 1/N[state][action]
+
             # update Q(a, s)
             Qvalue = Q[state][action]
             Q[state][action] = Qvalue \
-                             + learnRate*(reward + discount*(nextMaxQ - Qvalue))
-            if (DEBUG and 0 and (state == 5)):
-                print("{} + {}*({}+{}*({} - {})) = {}\n".format(Qvalue, learnRate, reward, discount, nextMaxQ, Qvalue, Q[state][action]))
-            # if (state == nextState):
-            #     print("staying still!")
-            # else:
-            #     print("XXXXXXXXX")
+                             + learnRate*(reward + discount*nextMaxQ - Qvalue)
+
+            if (state == 4 and 0):
+                print("state: {}, action: {}, T(s, a): {}".format(state, action, T(state, action)))
+                print("{} + {}*({}+({}*{}) - {}) = {}".format(Qvalue, learnRate, reward, discount, nextMaxQ, Qvalue, Q[state][action]))
+            #     print(Q[state])
+
             state = nextState
+            # if (DEBUG):
+            #     print(Q)
             if (DEBUG):
-                print(Q)
-            if (DEBUG):
-                print("")
+                print("\n")
         # while
         # print(policy)
     # for
     return policy, Q
 
-policy, Q = QLearning(10000)
+policy, Q = QLearning(10000, 0.2)
 # print(str(policy).replace("0", "up").replace("1", "down").replace("2", "left").replace("3", "right"))
 # print(policy)
 for i in range(4):
@@ -217,20 +199,20 @@ for key,Qvalues in enumerate(Q):
 #   'Left', 'Right', 'Right', 'Down',
 #   'Right', 'Right', 'Right', 'Up',
 #   'Up']
-[[-6.4351627842063435, -6.48184760533724, -6.4405195475559731, -6.4335109189868813],
-[-5.8064495012150728, -6.2918115129322487, -6.8318159320389489, -5.5380091986862139],
-[-5.1738653076108028, -4.5178391062970693, -5.9649432021389899, -4.5182191883581844],
-[-4.4065125537081853, -3.5179718403746372, -4.8955105297663035, -4.138439099207404],
-[-7.0796021505053615, -7.2945203260612335, -7.0840123838949269, -7.0798205099083749],
-[-6.29931630353299, -65.235175983363419, -13.198230763790601, -6.8750707339974761],
-[-5.0383120333601932, -3.4705289856620225, -6.2323175928054404, -3.4696709150046336],
-[-4.2973507251335947, -2.3713774975302226, -4.3323703513648502, -3.2317648955973479],
-[-10.016495940778368, -8.5081953721293324, -8.3195953793941246, -67.402289450180206],
-[-74.388030685626944, -73.56023943514279, -74.119114745418841, -73.170328317650998],
-[-7.8561026762874917, -3.5495759680901013, -62.511600373507683, -2.3073038604173668],
-[-3.2777126459620245, -1.1931003526285615, -3.2212983604621086, -2.2395102642020257],
-[-6.5280529667393301, -6.4931239473502371, -6.4955326375234215, -6.3763244684508438],
-[-63.778984282115616, -6.9544687243154097, -7.7351092575557265, -4.6920864267901008],
-[-2.5082035378428698, -1.9493358418791469, -5.3519092988406696, -1.1689606465062101],
-[0, 0, 0, 0],
-[0, 0, 0, 0]]
+# [[-6.4351627842063435, -6.48184760533724, -6.4405195475559731, -6.4335109189868813],
+# [-5.8064495012150728, -6.2918115129322487, -6.8318159320389489, -5.5380091986862139],
+# [-5.1738653076108028, -4.5178391062970693, -5.9649432021389899, -4.5182191883581844],
+# [-4.4065125537081853, -3.5179718403746372, -4.8955105297663035, -4.138439099207404],
+# [-7.0796021505053615, -7.2945203260612335, -7.0840123838949269, -7.0798205099083749],
+# [-6.29931630353299, -65.235175983363419, -13.198230763790601, -6.8750707339974761],
+# [-5.0383120333601932, -3.4705289856620225, -6.2323175928054404, -3.4696709150046336],
+# [-4.2973507251335947, -2.3713774975302226, -4.3323703513648502, -3.2317648955973479],
+# [-10.016495940778368, -8.5081953721293324, -8.3195953793941246, -67.402289450180206],
+# [-74.388030685626944, -73.56023943514279, -74.119114745418841, -73.170328317650998],
+# [-7.8561026762874917, -3.5495759680901013, -62.511600373507683, -2.3073038604173668],
+# [-3.2777126459620245, -1.1931003526285615, -3.2212983604621086, -2.2395102642020257],
+# [-6.5280529667393301, -6.4931239473502371, -6.4955326375234215, -6.3763244684508438],
+# [-63.778984282115616, -6.9544687243154097, -7.7351092575557265, -4.6920864267901008],
+# [-2.5082035378428698, -1.9493358418791469, -5.3519092988406696, -1.1689606465062101],
+# [0, 0, 0, 0],
+# [0, 0, 0, 0]]
