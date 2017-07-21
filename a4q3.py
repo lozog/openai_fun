@@ -2,41 +2,78 @@ import gym
 import numpy as np
 from keras.models import Sequential
 from keras.layers import Dense
-from keras.optimizers import sgd#,Adam
+from keras.optimizers import Adagrad
+import matplotlib.pyplot as plt
+from math import pow
 
-
-env = gym.make('CartPole-v0')
-
-EPISODES = 20
+EPISODES = 1000
 
 discount = 0.99
-epsilon = 0.05
-
+epsilon = 0.1
 
 model = Sequential()
 model.add(Dense(10, input_dim=4, activation='relu'))
 model.add(Dense(10, activation='relu'))
 model.add(Dense(2))
-model.compile(loss='mse', optimizer=sgd(lr=0.01))
+model.compile(loss='mse', optimizer=Adagrad(lr=0.1))
+
+env = gym.make('CartPole-v0')
+
+totalDiscountedRewards = []
+np.random.seed(10)
 
 for i_episode in range(EPISODES):
     observation = env.reset()
     observation = np.reshape(observation, [1, 4])
-    for t in range(5000):
-        env.render()
-        # print(observation)
-        action = model.predict(observation)
-        action = np.argmax(action[0])
+
+    totalDiscountedReward = 0
+    for t in range(500):
+        # env.render()
+
+        actions = model.predict(observation)
+
+        action = np.argmax(actions[0])
         if np.random.uniform(0,1) < epsilon:
             # Either 0 or 1 sample the action randomly
             action = np.random.randint(2)
-        # action = env.action_space.sample()
+
+        prevObservation = observation
+
         observation, reward, done, info = env.step(action)
         observation = np.reshape(observation, [1, 4])
-        print(action)
+
+        # learn the model
+        target = reward
+        if (not done):
+            temp = model.predict(observation)
+            # print("{}, {}".format(temp[0], np.amax(temp[0])))
+            target = reward + discount * np.amax(temp[0])
+            totalDiscountedReward += pow(discount, t)*reward
+
+        # print(target)
+        # print(prevObservation)
+        actions[0][action] = target
+        model.fit(prevObservation, actions, verbose=0)
+
         if done:
-            print("Episode finished after {} timesteps".format(t+1))
+            print("Episode {} finished after {} timesteps".format(i_episode+1, t+1))
             break
+            # for
+    totalDiscountedRewards.append(totalDiscountedReward)
+# for
+
+# print(totalDiscountedRewards)
+plt.plot(range(1, EPISODES + 1), totalDiscountedRewards)
+# plt.plot(range(1, 21), testingAccuracy)
+plt.ylabel('Total Discounted Reward')
+plt.xlabel('# of Training Episodes')
+# plt.xticks(range(0, 21, 5))
+# plt.yticks(range(0, 121, 20))
+plt.grid()
+axes = plt.gca()
+# axes.set_xlim([0,20])
+# axes.set_ylim([0,120])
+plt.show()
 
 # Construct a deep Q-network with the following configuration:
     # Input layer of 4 nodes (corresponding to the 4 state features)
