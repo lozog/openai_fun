@@ -7,13 +7,13 @@ import matplotlib.pyplot as plt
 from math import pow
 from collections import deque
 
-EPISODES = 1000
+EPISODES = 100
 HORIZON = 500
 REPLAY_BUFFER_SIZE = 1000
 MINI_BATCH_SIZE = 50
 
 discount = 0.99
-epsilon = 0.1
+epsilon = 0.05
 
 model = Sequential()
 model.add(Dense(10, input_dim=4, activation='relu'))
@@ -57,7 +57,7 @@ for ep in range(EPISODES):
     # for
     # print ("Replay Memory Size: {}".format(len(replayMemory)))
     memoryIndices = np.random.choice(len(replayMemory), min(MINI_BATCH_SIZE, len(replayMemory)))
-    # print(memoryIndices, len(memoryIndices))
+    # print(len(memoryIndices))
     for mIdx in memoryIndices:
         memory = replayMemory[mIdx]
         prevObservation = memory[0]
@@ -72,12 +72,11 @@ for ep in range(EPISODES):
             # print("{}, {}".format(prediction[0], np.amax(prediction[0])))
             target = reward + discount * np.amax(prediction[0])
 
-
-            prevPrediction = model.predict(prevObservation)
-            # print(target)
-            # print(prevObservation)
-            prevPrediction[0][action] = target
-            model.fit(prevObservation, prevPrediction, verbose=0)
+        prevPrediction = model.predict(prevObservation)
+        # print(target)
+        # print(prevObservation)
+        prevPrediction[0][action] = target
+        model.fit(prevObservation, prevPrediction, verbose=0)
 
     totalDiscountedRewards.append(totalDiscountedReward)
 # for
