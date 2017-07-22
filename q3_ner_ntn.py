@@ -5,12 +5,9 @@ from keras.layers import Dense
 from keras.optimizers import Adagrad
 import matplotlib.pyplot as plt
 from math import pow
-from collections import deque
 
-EPISODES = 100
+EPISODES = 1000
 HORIZON = 500
-REPLAY_BUFFER_SIZE = 1000
-MINI_BATCH_SIZE = 50
 
 discount = 0.99
 epsilon = 0.05
@@ -21,63 +18,48 @@ model.add(Dense(10, activation='relu'))
 model.add(Dense(2))
 model.compile(loss='mse', optimizer=Adagrad(lr=0.1))
 
-env = gym.make('CartPole-v0')
+env = gym.make('CartPole-v1')
 
 totalDiscountedRewards = []
 np.random.seed(10)
 
-replayMemory = deque(maxlen = REPLAY_BUFFER_SIZE)
-
-for ep in range(EPISODES):
+for i_episode in range(EPISODES):
     observation = env.reset()
     observation = np.reshape(observation, [1, 4])
 
     totalDiscountedReward = 0
     for t in range(HORIZON):
-        # env.render() # turning off rendering makes this run faster
+        # env.render()
 
         actions = model.predict(observation)
 
         action = np.argmax(actions[0])
         if np.random.uniform(0,1) < epsilon:
-            # epsilon-greediness
+            # Either 0 or 1 sample the action randomly
             action = np.random.randint(2)
 
         prevObservation = observation
 
         observation, reward, done, info = env.step(action)
         observation = np.reshape(observation, [1, 4])
-        totalDiscountedReward += pow(discount, t)*reward
-
-        replayMemory.append([prevObservation, action, observation, reward])
-
-        if done:
-            print("Episode {} finished after {} timesteps".format(ep+1, t+1))
-            break
-    # for
-    # print ("Replay Memory Size: {}".format(len(replayMemory)))
-    memoryIndices = np.random.choice(len(replayMemory), min(MINI_BATCH_SIZE, len(replayMemory)))
-    # print(len(memoryIndices))
-    for mIdx in memoryIndices:
-        memory = replayMemory[mIdx]
-        prevObservation = memory[0]
-        action = memory[1]
-        observation = memory[2]
-        reward = memory[3]
 
         # learn the model
         target = reward
-        if (mIdx != len(replayMemory) - 1):
+        if (not done):
             prediction = model.predict(observation)
             # print("{}, {}".format(prediction[0], np.amax(prediction[0])))
             target = reward + discount * np.amax(prediction[0])
+            totalDiscountedReward += pow(discount, t)*reward
 
-        prevPrediction = model.predict(prevObservation)
         # print(target)
         # print(prevObservation)
-        prevPrediction[0][action] = target
-        model.fit(prevObservation, prevPrediction, verbose=0)
+        actions[0][action] = target
+        model.fit(prevObservation, actions, epochs=1, verbose=0)
 
+        if done:
+            print("Episode {} finished after {} timesteps".format(i_episode+1, t+1))
+            break
+    # for
     totalDiscountedRewards.append(totalDiscountedReward)
 # for
 
@@ -87,7 +69,7 @@ plt.ylabel('Total Discounted Reward')
 plt.xlabel('# of Training Episodes')
 plt.grid()
 axes = plt.gca()
-plt.title("Experience Replay, No Target Network")
+plt.title("No Experience Replay, No Target Network")
 plt.show()
 
 # Construct a deep Q-network with the following configuration:
