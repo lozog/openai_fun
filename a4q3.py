@@ -7,101 +7,130 @@ import matplotlib.pyplot as plt
 from math import pow
 from collections import deque
 
-EPISODES = 100
+EPISODES = 1000
 HORIZON = 500
 REPLAY_BUFFER_SIZE = 1000
 MINI_BATCH_SIZE = 50
-
-discount = 0.99
-epsilon = 0.05
-
-model = Sequential()
-model.add(Dense(10, input_dim=4, activation='relu'))
-model.add(Dense(10, activation='relu'))
-model.add(Dense(2))
-model.compile(loss='mse', optimizer=Adagrad(lr=0.1))
-
-env = gym.make('CartPole-v0')
-
-totalDiscountedRewards = []
+WEIGHT_COPY_FREQ = 2
 np.random.seed(10)
 
-replayMemory = deque(maxlen = REPLAY_BUFFER_SIZE)
+class DQN:
+    def __init__(self, discount=0.99, epsilon=0.05, replay=False, target=False):
+        self.discount = discount
+        self.epsilon = epsilon
+        self.isReplay = replay
+        self.isTarget = target
 
-for ep in range(EPISODES):
-    observation = env.reset()
-    observation = np.reshape(observation, [1, 4])
+        if (replay):
+            self.replayMemory = deque(maxlen = REPLAY_BUFFER_SIZE)
 
-    totalDiscountedReward = 0
-    for t in range(HORIZON):
-        # env.render() # turning off rendering makes this run faster
+        self.model = Sequential()
+        self.model.add(Dense(10, input_dim=4, activation='relu'))
+        self.model.add(Dense(10, activation='relu'))
+        self.model.add(Dense(2))
+        self.model.compile(loss='mse', optimizer=Adagrad(lr=0.1))
 
-        actions = model.predict(observation)
+        if (target):
+            self.targetModel = Sequential()
+            self.targetModel.add(Dense(10, input_dim=4, activation='relu'))
+            self.targetModel.add(Dense(10, activation='relu'))
+            self.targetModel.add(Dense(2))
+            self.targetModel.compile(loss='mse', optimizer=Adagrad(lr=0.1))
 
-        action = np.argmax(actions[0])
-        if np.random.uniform(0,1) < epsilon:
-            # epsilon-greediness
-            action = np.random.randint(2)
+    def plot(self, totalDiscountedRewards):
+        plt.plot(range(1, EPISODES + 1), totalDiscountedRewards)
+        plt.ylabel('Total Discounted Reward')
+        plt.xlabel('# of Training Episodes')
+        plt.grid()
+        axes = plt.gca()
+        replayLabel = "No"
+        targetLabel = "No"
+        if (self.isReplay):
+            replayLabel = "With"
+        if (self.isTarget):
+            targetLabel = "With"
+        plt.title("{} Experience Replay, {} Target Network".format(replayLabel, targetLabel))
+        plt.show()
 
-        prevObservation = observation
-
-        observation, reward, done, info = env.step(action)
-        observation = np.reshape(observation, [1, 4])
-        totalDiscountedReward += pow(discount, t)*reward
-
-        replayMemory.append([prevObservation, action, observation, reward])
-
-        if done:
-            print("Episode {} finished after {} timesteps".format(ep+1, t+1))
-            break
-    # for
-    # print ("Replay Memory Size: {}".format(len(replayMemory)))
-    memoryIndices = np.random.choice(len(replayMemory), min(MINI_BATCH_SIZE, len(replayMemory)))
-    # print(len(memoryIndices))
-    for mIdx in memoryIndices:
-        memory = replayMemory[mIdx]
-        prevObservation = memory[0]
-        action = memory[1]
-        observation = memory[2]
-        reward = memory[3]
-
-        # learn the model
+    def train(self, observation, prevObservation, prevPrediction, reward, action, done):
         target = reward
-        if (mIdx != len(replayMemory) - 1):
-            prediction = model.predict(observation)
+        if (not done):
+            if (self.isTarget):
+                prediction = self.targetModel.predict(observation)
+            else:
+                prediction = self.model.predict(observation)
             # print("{}, {}".format(prediction[0], np.amax(prediction[0])))
-            target = reward + discount * np.amax(prediction[0])
+            target = reward + self.discount * np.amax(prediction[0])
 
-        prevPrediction = model.predict(prevObservation)
-        # print(target)
-        # print(prevObservation)
         prevPrediction[0][action] = target
-        model.fit(prevObservation, prevPrediction, verbose=0)
+        self.model.fit(prevObservation, prevPrediction, epochs=1, verbose=0)
 
-    totalDiscountedRewards.append(totalDiscountedReward)
-# for
+    def replay(self):
+        if (len(self.replayMemory) < MINI_BATCH_SIZE):
+            return
+        else:
+            memoryIndices = np.random.choice(len(self.replayMemory), MINI_BATCH_SIZE)
+            for mIdx in memoryIndices:
+                memory = self.replayMemory[mIdx]
+                prevObservation = memory[0]
+                action          = memory[1]
+                observation     = memory[2]
+                reward          = memory[3]
+                done            = memory[4]
 
-# print(totalDiscountedRewards)
-plt.plot(range(1, EPISODES + 1), totalDiscountedRewards)
-plt.ylabel('Total Discounted Reward')
-plt.xlabel('# of Training Episodes')
-plt.grid()
-axes = plt.gca()
-plt.title("Experience Replay, No Target Network")
-plt.show()
+                prevPrediction = self.model.predict(prevObservation)
+                self.train(observation, prevObservation, prevPrediction, reward, action, done)
 
-# Construct a deep Q-network with the following configuration:
-    # Input layer of 4 nodes (corresponding to the 4 state features)
-    # Two hidden layers of 10 rectified linear units (fully connected)
-    # Output layer of 2 identity units (fully connected) that compute the Q-values of the two actions
-# Train this neural network by gradient Q-learning with the following parameter:
-    # Discount factor: gamma=0.99
-    # Exploration strategy: epsilon-greedy with epsilon=0.05
-    # Use the adagradOptimizer(learingRate=0.1), AdamOptimizer(learningRate=0.1) or GradientDescentOptimizer(learningRate=0.01).  The Adagrad and Adam optimizers automatically adjust the learning rate in gradient descent and therefore perform better in practice.
-    # Maximum horizon of 500 steps per episode (An episode may terminate earlier if the pole falls before 500 steps.  The gym simulator will set the flag "done" to true when the pole has fallen.)
-    # Train for a maximum of 1000 episodes
-# Produce a graph that shows the discounted total reward (y-axis) earned in each training episode as a function of the number of training episodes.  Produce 4 curves for the following 4 scenarios:
-    # Q-learning (no experience replay and no target network)
-    # Q-learning with experience replay (no target network).  Use a replay buffer of size 1000 and replay a mini-batch of size 50 after each new experience.
-    # Q-learning with a target network (no experience replay).  Update the the target network after every 2 episodes.
-    # Q-learning with experience replay and a target network.  Use a replay buffer of size 1000 and replay a mini-batch of size 50 after each new experience. Update the the target network after every 2 episodes.
+    def run(self):
+        env = gym.make('CartPole-v1')
+
+        totalDiscountedRewards = []
+
+        for ep in range(EPISODES):
+            observation = env.reset()
+            observation = np.reshape(observation, [1, 4])
+
+            totalDiscountedReward = 0
+            for t in range(HORIZON):
+                # env.render()
+
+                prediction = self.model.predict(observation)
+
+                action = np.argmax(prediction[0])
+                if np.random.uniform(0,1) < self.epsilon:
+                    # epsilon-greediness
+                    action = np.random.randint(2)
+
+                prevObservation = observation
+                prevPrediction = prediction
+
+                observation, reward, done, info = env.step(action)
+                observation = np.reshape(observation, [1, 4])
+
+                totalDiscountedReward += pow(self.discount, t)*reward
+
+                if (self.isReplay):
+                    self.replayMemory.append([prevObservation, action, observation, reward, done])
+
+                self.train(observation, prevObservation, prevPrediction, reward, action, done)
+
+                if (done):
+                    if (ep % 10 == 0):
+                        print("Episode {} finished after {} timesteps".format(ep+1, t+1))
+                    break
+            # for
+            totalDiscountedRewards.append(totalDiscountedReward)
+
+            if (self.isReplay):
+                self.replay()
+
+            if (self.isTarget):
+                if (ep > 0 and ep % WEIGHT_COPY_FREQ == 0):
+                    self.targetModel.set_weights( self.model.get_weights() )
+        # for
+
+        # print(totalDiscountedRewards)
+        self.plot(totalDiscountedRewards)
+
+dqn = DQN(replay=True,target=True)
+dqn.run()
