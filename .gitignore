@@ -2,4 +2,7 @@
 *.log
 *.out
 graph*
+__pycache__*
 *.png
+transitions
+varElim.py
