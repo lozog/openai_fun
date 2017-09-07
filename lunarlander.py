@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 from math import pow
 from collections import deque
 
+ENVIRONMENT = 'LunarLander-v2'
+ENV_OBS_SIZE = 2
 EPISODES = 1000
 HORIZON = 500
 REPLAY_BUFFER_SIZE = 1000
@@ -25,14 +27,14 @@ class DQN:
             self.replayMemory = deque(maxlen = REPLAY_BUFFER_SIZE)
 
         self.model = Sequential()
-        self.model.add(Dense(10, input_dim=4, activation='relu'))
+        self.model.add(Dense(10, input_dim=ENV_OBS_SIZE, activation='relu'))
         self.model.add(Dense(10, activation='relu'))
         self.model.add(Dense(2))
         self.model.compile(loss='mse', optimizer=Adagrad(lr=0.1))
 
         if (target):
             self.targetModel = Sequential()
-            self.targetModel.add(Dense(10, input_dim=4, activation='relu'))
+            self.targetModel.add(Dense(10, input_dim=ENV_OBS_SIZE, activation='relu'))
             self.targetModel.add(Dense(10, activation='relu'))
             self.targetModel.add(Dense(2))
             self.targetModel.compile(loss='mse', optimizer=Adagrad(lr=0.1))
@@ -82,17 +84,17 @@ class DQN:
                 self.train(observation, prevObservation, prevPrediction, reward, action, done)
 
     def run(self):
-        env = gym.make('CartPole-v1')
+        env = gym.make(ENVIRONMENT)
 
         totalDiscountedRewards = []
 
         for ep in range(EPISODES):
             observation = env.reset()
-            observation = np.reshape(observation, [1, 4])
+            observation = np.reshape(observation, [1, ENV_OBS_SIZE])
 
             totalDiscountedReward = 0
             for t in range(HORIZON):
-                # env.render()
+                env.render()
 
                 prediction = self.model.predict(observation)
 
@@ -105,7 +107,7 @@ class DQN:
                 prevPrediction = prediction
 
                 observation, reward, done, info = env.step(action)
-                observation = np.reshape(observation, [1, 4])
+                observation = np.reshape(observation, [1, ENV_OBS_SIZE])
 
                 totalDiscountedReward += pow(self.discount, t)*reward
 
